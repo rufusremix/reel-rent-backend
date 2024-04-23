@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { Genre, validate } = require("../models/genre");
+const auth = require("../middleware/auth");
 
 router.get("/", async (req, res) => {
   const genres = await Genre.find();
@@ -17,7 +18,7 @@ router.get("/:id", async (req, res) => {
   res.send(genre);
 });
 
-router.post("/", async (req, res) => {
+router.post("/", auth, async (req, res) => {
   const { error } = validate(req.body);
   if (error) return res.status(400).send(error.details[0].message);
 
@@ -27,7 +28,7 @@ router.post("/", async (req, res) => {
   res.send(genre);
 });
 
-router.put("/:id", async (req, res) => {
+router.put("/:id", auth, async (req, res) => {
   const { error } = validate(req.body);
   if (error) return res.send(error.details[0].message);
 
@@ -41,7 +42,7 @@ router.put("/:id", async (req, res) => {
   res.send(genre);
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", auth, async (req, res) => {
   const genre = await Genre.findByIdAndDelete(req.params.id).catch((err) =>
     console.log("Error while deleting object", err)
   );
