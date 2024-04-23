@@ -9,9 +9,7 @@ router.get("/", auth, async (req, res) => {
 });
 
 router.get("/:id", auth, async (req, res) => {
-  const customer = await Customer.findById(req.params.id).catch((err) =>
-    console.log("Error while fetching customer", err)
-  );
+  const customer = await Customer.findById(req.params.id);
 
   if (!customer)
     return res
