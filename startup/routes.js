@@ -4,7 +4,6 @@ const customers = require("../routes/customers");
 const movies = require("../routes/movies");
 const rentals = require("../routes/rentals");
 const returns = require("../routes/returns");
-const users = require("../routes/users");
 const auth = require("../routes/auth");
 const error = require("../middleware/error");
 
@@ -15,7 +14,6 @@ function routes(app) {
   app.use("/api/movies", movies);
   app.use("/api/rentals", rentals);
   app.use("/api/returns", returns);
-  app.use("/api/users", users);
   app.use("/api/auth", auth);
   app.use(error);
 }

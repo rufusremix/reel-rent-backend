@@ -1,3 +1,4 @@
 {
-  "jwtPrivateKey": "reel-rent_jwtPrivateKey"
+  "accessTokenSecretKey": "reel-rent_accessTokenSecretKey",
+  "refreshTokenSecretKey": "reel-rent_refreshTokenSecretKey"
 }

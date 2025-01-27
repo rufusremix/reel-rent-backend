@@ -1,6 +1,7 @@
 require("dotenv").config();
 require("express-async-errors");
 const express = require("express");
+const cors = require("cors");
 const Joi = require("joi");
 Joi.objectId = require("joi-objectid")(Joi);
 
@@ -9,6 +10,13 @@ const connectDatabase = require("./startup/database");
 const handleLog = require("./startup/logging");
 
 const app = express();
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST"],
+    credentials: true,
+  })
+);
 
 handleLog();
 addAllRoutes(app);
