@@ -1,4 +1,5 @@
 import {
+  Alert,
   Box,
   Button,
   Container,
@@ -13,18 +14,37 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { signupSchema } from "../validations/authValidation";
 import { useAuthActions } from "../hooks/useAuthActions";
 import { NavLink } from "react-router";
+import { useState } from "react";
 
 const SignUpPage = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors, isValid },
+    reset,
+    formState: { errors: formErrors },
   } = useForm({ resolver: zodResolver(signupSchema) });
 
   const { handleSignup } = useAuthActions();
 
+  const [status, setStatus] = useState({
+    success: false,
+    error: false,
+    message: "",
+  });
+
   const onSubmit = async ({ name, email, password }) => {
-    await handleSignup({ name, email, password });
+    const result = await handleSignup({
+      name,
+      email,
+      password,
+    });
+
+    if (!result.success) {
+      setStatus({ success: false, error: true, message: result.message });
+      return;
+    }
+    setStatus({ success: true, error: false, message: result.message });
+    reset();
   };
   return (
     <>
@@ -33,6 +53,14 @@ const SignUpPage = () => {
           <Typography component="h1" variant="h5" sx={{ mb: 4 }}>
             Signup
           </Typography>
+          {status.message && (
+            <Alert
+              severity={status.success ? "success" : "error"}
+              sx={{ mb: 2 }}
+            >
+              {status.message}
+            </Alert>
+          )}
           <Box
             component="form"
             onSubmit={handleSubmit(onSubmit)}
@@ -47,7 +75,9 @@ const SignUpPage = () => {
                 fullWidth
                 required
               />
-              {errors.name && <Typography>{errors.name.message}</Typography>}
+              {formErrors.name && (
+                <Typography>{formErrors.name.message}</Typography>
+              )}
             </FormControl>
             <FormControl required fullWidth sx={{ mb: 2 }}>
               <FormLabel htmlFor="email"> Email</FormLabel>
@@ -58,7 +88,9 @@ const SignUpPage = () => {
                 fullWidth
                 required
               />
-              {errors.email && <Typography>{errors.email.message}</Typography>}
+              {formErrors.email && (
+                <Typography>{formErrors.email.message}</Typography>
+              )}
             </FormControl>
             <FormControl required fullWidth sx={{ mb: 2 }}>
               <FormLabel htmlFor="password"> Password</FormLabel>
@@ -69,8 +101,8 @@ const SignUpPage = () => {
                 fullWidth
                 required
               />
-              {errors.password && (
-                <Typography>{errors.password.message}</Typography>
+              {formErrors.password && (
+                <Typography>{formErrors.password.message}</Typography>
               )}
             </FormControl>
             <FormControl required fullWidth sx={{ mb: 2 }}>
@@ -81,9 +113,10 @@ const SignUpPage = () => {
                 placeholder="Re-enter you password"
                 fullWidth
                 required
+                type="Password"
               />
-              {errors.confirmPassword && (
-                <Typography>{errors.confirmPassword.message}</Typography>
+              {formErrors.confirmPassword && (
+                <Typography>{formErrors.confirmPassword.message}</Typography>
               )}
             </FormControl>
             <Button fullWidth variant="contained" type="submit">

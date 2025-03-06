@@ -5,9 +5,9 @@ const admin = require("../middleware/admin");
 const { Genre } = require("../models/genre");
 const { Movie, validate } = require("../models/movie");
 
-router.get("/", async (req, res) => {
+router.get("/", auth, async (req, res) => {
   const movies = await Movie.find().sort("name");
-  res.send(movies);
+  res.status(200).send(movies);
 });
 
 router.get("/:id", async (req, res) => {

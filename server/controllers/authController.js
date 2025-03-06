@@ -2,25 +2,34 @@ const Joi = require("joi");
 const { User } = require("../models/user");
 const bcrypt = require("bcrypt");
 const _ = require("lodash");
+const jwt = require("jsonwebtoken");
+const config = require("config");
 const {
   generateAccessToken,
   generateRefreshToken,
 } = require("../utils/tokenUtils");
-const { RefreshToken } = require("../models/refreshToken");
 
 const signup = async (req, res) => {
   const { error } = validateUser(req.body);
-  if (error) return res.status(400).send(error.details[0].message);
+  if (error)
+    return res
+      .status(400)
+      .json({ success: false, error: { message: error.details[0].message } });
 
   let user = await User.findOne({ email: req.body.email });
-  if (user) return res.status(400).send("User already exists");
+  if (user)
+    return res
+      .status(400)
+      .json({ success: false, error: { message: "User already exists" } });
 
   user = new User(_.pick(req.body, ["name", "email", "password"]));
   const salt = await bcrypt.genSalt(10);
   user.password = await bcrypt.hash(user.password, salt);
   await user.save();
 
-  res.status(201).send("User registered successfully!");
+  res
+    .status(201)
+    .json({ success: true, message: "User registered successfully!" });
 
   function validateUser(user) {
     const schema = Joi.object({
@@ -35,30 +44,43 @@ const signup = async (req, res) => {
 
 const login = async (req, res) => {
   const { error } = validateLogin(req.body);
-  if (error) return res.status(400).send(error.details[0].message);
+  if (error)
+    return res
+      .status(400)
+      .json({ success: false, error: { message: error.details[0].message } });
 
   let user = await User.findOne({ email: req.body.email });
-  if (!user) return res.status(400).send("Invalid email or password.");
+  if (!user)
+    return res.status(400).json({
+      success: false,
+      error: { message: "Invalid email or password." },
+    });
 
   const validPassword = await bcrypt.compare(req.body.password, user.password);
-  if (!validPassword) return res.status(400).send("Invalid email or password.");
+  if (!validPassword)
+    return res.status(400).json({
+      success: false,
+      error: { message: "Invalid email or password." },
+    });
 
   const accessToken = generateAccessToken(user);
   const refreshToken = generateRefreshToken(user);
 
-  const newRefreshToken = new RefreshToken({
-    userId: user._id,
-    token: refreshToken,
-  });
+  await user.addRefreshToken(refreshToken);
 
-  await newRefreshToken.save();
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
-    // secure: true,
-    maxAge: 5000, // 5 seconds
+    secure: true,
+    // maxAge: 50000, // 5 seconds
+    sameSite: "None",
   });
 
-  res.status(200).json({ accessToken });
+  res.status(200).json({
+    success: true,
+    message: "Login successfull!",
+    user: _.pick(user, ["name", "email", "isAdmin"]),
+    accessToken,
+  });
 
   function validateLogin(user) {
     const schema = Joi.object({
@@ -70,17 +92,90 @@ const login = async (req, res) => {
   }
 };
 
-const logout = async (req, res) => {
-  const { refreshToken } = req.body;
-  if (!refreshToken) return res.status(400).send("Refresh token is required");
+const refreshToken = async (req, res) => {
+  const { refreshToken } = req.cookies;
+  if (!refreshToken)
+    return res.status(400).json({
+      success: false,
+      error: { message: "Refresh token is required" },
+    });
 
-  const storedRefreshToken = await RefreshToken.findOne({
-    token: refreshToken,
-  });
-  if (!storedRefreshToken) return res.status(401).send("Invalid refresh token");
+  try {
+    const decoded = jwt.verify(
+      refreshToken,
+      config.get("refreshTokenSecretKey")
+    );
+    const userId = decoded.sub;
 
-  await RefreshToken.deleteOne({ token: refreshToken });
-  res.status(200).send("Logged out successfully");
+    const user = await User.findOne({ _id: userId });
+    if (!user || !(await user.validateRefreshToken(refreshToken)))
+      return res
+        .status(403)
+        .json({ success: false, error: { message: "Access denied." } });
+
+    await user.removeRefreshToken(refreshToken);
+
+    const newAccessToken = generateAccessToken(user);
+    const newRefreshToken = generateRefreshToken(user);
+
+    await user.addRefreshToken(newRefreshToken);
+
+    res.cookie("refreshToken", newRefreshToken, {
+      httpOnly: true,
+      secure: true,
+      // maxAge: 50000, // 5 seconds
+      sameSite: "None",
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "New access token provided",
+      accessToken: newAccessToken,
+    });
+  } catch (error) {
+    if (error.name === "TokenExpiredError")
+      return res.status(403).json({
+        success: false,
+        error: { message: "Session expired. Please log in again." },
+      });
+
+    return res
+      .status(401)
+      .json({ success: false, error: { message: "Invalid refresh token." } });
+  }
 };
 
-module.exports = { signup, login, logout };
+const logout = async (req, res) => {
+  try {
+    const { refreshToken } = req.cookies;
+    if (!refreshToken) {
+      res.clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "None",
+      });
+      return res.sendStatus(204);
+    }
+
+    const decoded = jwt.verify(
+      refreshToken,
+      config.get("refreshTokenSecretKey")
+    );
+    const user = await User.findOne({ _id: decoded.sub });
+    if (!user) {
+      throw new Error("User not found.");
+    }
+
+    await user.removeRefreshToken(refreshToken);
+  } catch (error) {
+    console.log("Error", error);
+  }
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "None",
+  });
+  res.status(200).json({ success: true, message: "Logged out successfully" });
+};
+
+module.exports = { signup, login, logout, refreshToken };

@@ -2,6 +2,7 @@ require("dotenv").config();
 require("express-async-errors");
 const express = require("express");
 const cors = require("cors");
+const cookieParser = require("cookie-parser");
 const Joi = require("joi");
 Joi.objectId = require("joi-objectid")(Joi);
 
@@ -10,6 +11,7 @@ const connectDatabase = require("./startup/database");
 const handleLog = require("./startup/logging");
 
 const app = express();
+app.use(cookieParser());
 app.use(
   cors({
     origin: process.env.FRONTEND_URL,

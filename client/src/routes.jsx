@@ -5,6 +5,8 @@ import MovieListingPage from "./pages/MovieListingPage";
 import ErrorPage from "./pages/ErrorPage";
 import SignUpPage from "./pages/SignUpPage";
 import LoginPage from "./pages/LoginPage";
+import RequireAuth from "./routes/RequireAuth";
+import UnauthorizedPage from "./pages/UnauthorizedPage";
 
 const router = createBrowserRouter([
   {
@@ -24,6 +26,15 @@ const router = createBrowserRouter([
         path: "login",
         element: <LoginPage />,
       },
+      {
+        path: "unauthorized",
+        element: <UnauthorizedPage />,
+      },
+    ],
+  },
+  {
+    element: <RequireAuth />,
+    children: [
       {
         path: "movies",
         element: <MovieListingPage />,

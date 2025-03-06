@@ -1,7 +1,22 @@
 import axios from "axios";
 
-const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+const API_URL = import.meta.env.VITE_API_URL;
+const AUTH_URL = import.meta.env.VITE_AUTH_URL;
+
+export const axiosInstance = axios.create({
+  baseURL: API_URL,
+  headers: { "Content-Type": "application/json" },
+  withCredentials: true,
 });
 
-export default axiosInstance;
+export const axiosAuthInstance = axios.create({
+  baseURL: AUTH_URL,
+  headers: { "Content-Type": "application/json" },
+  withCredentials: true,
+});
+
+export const axiosPrivateInstance = axios.create({
+  baseURL: API_URL,
+  headers: { "Content-Type": "application/json" },
+  withCredentials: true,
+});

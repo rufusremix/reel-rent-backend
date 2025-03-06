@@ -1,4 +1,5 @@
 import {
+  Alert,
   Box,
   Button,
   Container,
@@ -12,19 +13,35 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema } from "../validations/authValidation";
 import { useAuthActions } from "../hooks/useAuthActions";
-import { NavLink } from "react-router";
+import { NavLink, useLocation, useNavigate } from "react-router";
+import { useState } from "react";
 
 const LoginPage = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors, isValid },
+    formState: { errors: formErrors },
   } = useForm({ resolver: zodResolver(loginSchema) });
 
   const { handleLogin } = useAuthActions();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const from = location?.state?.from.pathname || "/";
+
+  const [status, setStatus] = useState({
+    success: false,
+    error: false,
+    message: "",
+  });
 
   const onSubmit = async (userData) => {
-    await handleLogin(userData);
+    const result = await handleLogin(userData);
+    if (!result.success) {
+      setStatus({ success: false, error: true, message: result.message });
+      return;
+    }
+    setStatus({ success: true, error: false, message: result.message });
+    setTimeout(() => navigate(from, { replace: true }), 400);
   };
   return (
     <>
@@ -33,6 +50,14 @@ const LoginPage = () => {
           <Typography component="h1" variant="h5" sx={{ mb: 4 }}>
             Login
           </Typography>
+          {status.message && (
+            <Alert
+              severity={status.success ? "success" : "error"}
+              sx={{ mb: 2 }}
+            >
+              {status.message}
+            </Alert>
+          )}
           <Box
             component="form"
             onSubmit={handleSubmit(onSubmit)}
@@ -47,7 +72,9 @@ const LoginPage = () => {
                 fullWidth
                 required
               />
-              {errors.email && <Typography>{errors.email.message}</Typography>}
+              {formErrors.email && (
+                <Typography>{formErrors.email.message}</Typography>
+              )}
             </FormControl>
             <FormControl required fullWidth sx={{ mb: 2 }}>
               <FormLabel htmlFor="password"> Password</FormLabel>
@@ -57,9 +84,10 @@ const LoginPage = () => {
                 placeholder="Enter your password"
                 fullWidth
                 required
+                type="password"
               />
-              {errors.password && (
-                <Typography>{errors.password.message}</Typography>
+              {formErrors.password && (
+                <Typography>{formErrors.password.message}</Typography>
               )}
             </FormControl>
             <Button fullWidth variant="contained" type="submit">
