@@ -9,8 +9,10 @@ Joi.objectId = require("joi-objectid")(Joi);
 const addAllRoutes = require("./startup/routes");
 const connectDatabase = require("./startup/database");
 const handleLog = require("./startup/logging");
+const logger = require("./utils/logger");
 
 const app = express();
+handleLog();
 app.use(cookieParser());
 app.use(
   cors({
@@ -20,12 +22,11 @@ app.use(
   })
 );
 
-handleLog();
 addAllRoutes(app);
 connectDatabase();
 require("./startup/config")();
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Listening on Port ${PORT}`);
+  logger.info(`Listening on Port ${PORT}`);
 });

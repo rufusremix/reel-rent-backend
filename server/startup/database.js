@@ -1,13 +1,14 @@
 const mongoose = require("mongoose");
+const logger = require("../utils/logger");
 
 function connectDatabase() {
   const uri = process.env.MONGO_URI;
   const dbName = process.env.dbName;
   mongoose
     .connect(uri, { dbName })
-    .then(() => console.log("Connected to MongoDB Cloud Successfully"))
+    .then(() => logger.info("Connected to MongoDB Successfully"))
     .catch((err) =>
-      console.error(`Error connecting to the MongoDB Cloud. \n${err}`)
+      logger.error(`Error connecting to the MongoDB.`, { stack: err.stack })
     );
 }
 

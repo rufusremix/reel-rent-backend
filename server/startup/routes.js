@@ -6,9 +6,11 @@ const rentals = require("../routes/rentals");
 const returns = require("../routes/returns");
 const auth = require("../routes/auth");
 const error = require("../middleware/error");
+const requestLogger = require("../middleware/requestLogger");
 
 function routes(app) {
   app.use(express.json());
+  app.use(requestLogger);
   app.use("/api/genres", genres);
   app.use("/api/customers", customers);
   app.use("/api/movies", movies);
