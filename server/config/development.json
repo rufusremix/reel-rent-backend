@@ -1,0 +1,10 @@
+{
+  "server": {
+    "cors": {
+      "origin": "http://localhost:5000"
+    }
+  },
+  "logging": {
+    "level": "silly"
+  }
+}

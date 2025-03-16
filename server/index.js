@@ -3,30 +3,31 @@ require("express-async-errors");
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
+const config = require("config");
 const Joi = require("joi");
 Joi.objectId = require("joi-objectid")(Joi);
 
+const ensureConfig = require("./startup/config");
 const addAllRoutes = require("./startup/routes");
 const connectDatabase = require("./startup/database");
 const handleLog = require("./startup/logging");
 const logger = require("./utils/logger");
-
 const app = express();
 handleLog();
 app.use(cookieParser());
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL,
-    methods: ["GET", "POST"],
-    credentials: true,
+    origin: config.get("server.cors.origin"),
+    methods: config.get("server.cors.methods"),
+    credentials: config.get("server.cors.credentials"),
   })
 );
 
 addAllRoutes(app);
 connectDatabase();
-require("./startup/config")();
+ensureConfig();
 
-const PORT = process.env.PORT || 3000;
+const PORT = config.get("server.port");
 app.listen(PORT, () => {
   logger.info(`Listening on Port ${PORT}`);
 });

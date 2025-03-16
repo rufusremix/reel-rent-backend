@@ -1,5 +1,6 @@
 const { createLogger, format, transports } = require("winston");
 const { levelStyles, levelColors, colors } = require("./logStyles");
+const config = require("config");
 
 const consoleLogFormat = format.combine(
   format.timestamp({ format: "DD-MM-YYYY HH:mm:ss" }),
@@ -17,7 +18,7 @@ const consoleLogFormat = format.combine(
 );
 
 const logger = createLogger({
-  level: process.env.LOG_LEVEL || "debug",
+  level: config.get("logging.level"),
   format: format.json(),
   transports: [
     new transports.Console({

@@ -2,20 +2,17 @@ const config = require("config");
 
 module.exports = function () {
   const requiredConfigs = [
-    {
-      key: "accessTokenSecretKey",
-      errorMsg: "FATAL ERROR: Access Token Secret Key is not set",
-    },
-    {
-      key: "refreshTokenSecretKey",
-      errorMsg: "FATAL ERROR: Refresh Token Secret Key is not set",
-    },
+    "auth.accessTokenSecret",
+    "auth.refreshTokenSecret",
+    "auth.accessTokenExpiry",
+    "auth.refreshTokenExpiry",
   ];
 
-  requiredConfigs.forEach(({ key, errorMsg }) => {
+  requiredConfigs.forEach((key) => {
     if (!config.get(key)) {
-      throw new Error(errorMsg);
-      // process.exit(1);
+      throw new Error(
+        `Missing required config: [${key}]. Set the environment variable!`
+      );
     }
   });
 };

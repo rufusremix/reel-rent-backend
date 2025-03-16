@@ -103,7 +103,7 @@ const refreshToken = async (req, res) => {
   try {
     const decoded = jwt.verify(
       refreshToken,
-      config.get("refreshTokenSecretKey")
+      config.get("auth.refreshTokenSecret")
     );
     const userId = decoded.sub;
 
@@ -159,7 +159,7 @@ const logout = async (req, res) => {
 
     const decoded = jwt.verify(
       refreshToken,
-      config.get("refreshTokenSecretKey")
+      config.get("auth.refreshTokenSecret")
     );
     const user = await User.findOne({ _id: decoded.sub });
     if (!user) {

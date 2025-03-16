@@ -1,4 +1,12 @@
 {
-  "accessTokenSecretKey": "reel-rent_accessTokenSecretKey",
-  "refreshTokenSecretKey": "reel-rent_refreshTokenSecretKey"
+  "db": {
+    "uri": "DB_URI",
+    "name": "DB_NAME"
+  },
+  "auth": {
+    "accessTokenSecret": "ACCESS_TOKEN_SECRET",
+    "refreshTokenSecret": "REFRESH_TOKEN_SECRET",
+    "accessTokenExpiry": "ACCESS_TOKEN_EXPIRY",
+    "refreshTokenExpiry": "REFRESH_TOKEN_EXPIRY"
+  }
 }

@@ -1,9 +1,11 @@
 const mongoose = require("mongoose");
 const logger = require("../utils/logger");
+const config = require("config");
 
 function connectDatabase() {
-  const uri = process.env.MONGO_URI;
-  const dbName = process.env.dbName;
+  const uri = config.get("db.uri");
+  const dbName = config.get("db.name");
+
   mongoose
     .connect(uri, { dbName })
     .then(() => logger.info("Connected to MongoDB Successfully"))

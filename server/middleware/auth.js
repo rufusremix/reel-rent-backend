@@ -23,7 +23,7 @@ function auth(req, res, next) {
       .json({ message: "Access denied. No token provided." });
 
   try {
-    const decoded = jwt.verify(token, config.get("accessTokenSecretKey"));
+    const decoded = jwt.verify(token, config.get("auth.accessTokenSecret"));
     req.user = decoded;
     next();
   } catch (err) {
